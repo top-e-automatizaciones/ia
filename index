@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>TOP-e.IA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      margin-bottom: 10px;
+    }
+
+    p {
+      max-width: 600px;
+      color: #cbd5f5;
+      margin-bottom: 30px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 12px 22px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    .btn-email {
+      background: #22c55e;
+      color: black;
+    }
+
+    .btn-privacy {
+      background: #1e293b;
+      color: white;
+      border: 1px solid #334155;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+
+    a {
+      color: #22c55e;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>TOP-e.IA</h1>
+    <p>
+      Automatización inteligente para negocios.  
+      Creamos soluciones con bots en WhatsApp y sistemas automatizados
+      para mejorar tu atención al cliente y aumentar tus ventas.
+    </p>
+
+    <div class="buttons">
+      <a class="btn btn-email" href="mailto:pruebasiafenix@gmail.com">
+        Contactar por correo
+      </a>
+
+      <a class="btn btn-privacy" href="privacy.html">
+        Política de privacidad
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    © 2026 TOP-e.IA
+  </footer>
+
+</body>
+</html>
