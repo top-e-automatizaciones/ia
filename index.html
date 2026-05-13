@@ -2,106 +2,436 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>TOP-e.IA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOP-e.IA | Automatización Inteligente</title>
+
   <style>
-    body {
-      margin: 0;
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    body{
       font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
+      background:#050816;
+      color:white;
+      overflow-x:hidden;
     }
 
-    .container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 40px 20px;
+    header{
+      position:fixed;
+      width:100%;
+      top:0;
+      z-index:100;
+      backdrop-filter: blur(12px);
+      background:rgba(5,8,22,.7);
+      border-bottom:1px solid rgba(255,255,255,.08);
     }
 
-    h1 {
-      font-size: 2.8rem;
-      margin-bottom: 10px;
+    nav{
+      max-width:1200px;
+      margin:auto;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:20px;
     }
 
-    p {
-      max-width: 600px;
-      color: #cbd5f5;
-      margin-bottom: 30px;
+    .logo{
+      font-size:1.3rem;
+      font-weight:bold;
+      color:#22c55e;
     }
 
-    .buttons {
-      display: flex;
-      gap: 15px;
-      flex-wrap: wrap;
-      justify-content: center;
+    nav ul{
+      display:flex;
+      list-style:none;
+      gap:25px;
     }
 
-    .btn {
-      padding: 12px 22px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: bold;
-      transition: 0.2s;
+    nav a{
+      color:white;
+      text-decoration:none;
+      opacity:.8;
+      transition:.3s;
     }
 
-    .btn-email {
-      background: #22c55e;
-      color: black;
+    nav a:hover{
+      opacity:1;
+      color:#22c55e;
     }
 
-    .btn-privacy {
-      background: #1e293b;
-      color: white;
-      border: 1px solid #334155;
+    .hero{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:120px 20px 60px;
+      background:
+      radial-gradient(circle at top left, rgba(34,197,94,.2), transparent 25%),
+      radial-gradient(circle at top right, rgba(59,130,246,.2), transparent 25%);
     }
 
-    .btn:hover {
-      transform: scale(1.05);
+    .hero-content{
+      max-width:900px;
     }
 
-    footer {
-      text-align: center;
-      padding: 15px;
-      font-size: 0.9rem;
-      color: #94a3b8;
+    .badge{
+      display:inline-block;
+      background:rgba(34,197,94,.1);
+      color:#86efac;
+      padding:10px 18px;
+      border-radius:999px;
+      border:1px solid rgba(34,197,94,.3);
+      margin-bottom:25px;
+      font-size:.9rem;
     }
 
-    a {
-      color: #22c55e;
+    h1{
+      font-size:4rem;
+      line-height:1;
+      margin-bottom:25px;
     }
+
+    .gradient{
+      background:linear-gradient(90deg,#22c55e,#38bdf8);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+
+    .hero p{
+      color:#cbd5e1;
+      font-size:1.2rem;
+      line-height:1.7;
+      margin-bottom:35px;
+    }
+
+    .buttons{
+      display:flex;
+      gap:15px;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      padding:15px 25px;
+      border-radius:12px;
+      font-weight:bold;
+      text-decoration:none;
+      transition:.3s;
+    }
+
+    .btn-primary{
+      background:#22c55e;
+      color:black;
+    }
+
+    .btn-primary:hover{
+      transform:translateY(-3px);
+      box-shadow:0 10px 30px rgba(34,197,94,.3);
+    }
+
+    .btn-secondary{
+      border:1px solid rgba(255,255,255,.1);
+      color:white;
+      background:rgba(255,255,255,.03);
+    }
+
+    section{
+      padding:90px 20px;
+    }
+
+    .container{
+      max-width:1200px;
+      margin:auto;
+    }
+
+    .section-title{
+      text-align:center;
+      margin-bottom:60px;
+    }
+
+    .section-title h2{
+      font-size:2.8rem;
+      margin-bottom:15px;
+    }
+
+    .section-title p{
+      color:#94a3b8;
+      max-width:700px;
+      margin:auto;
+      line-height:1.7;
+    }
+
+    .services{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:25px;
+    }
+
+    .card{
+      background:rgba(15,23,42,.7);
+      border:1px solid rgba(255,255,255,.08);
+      padding:30px;
+      border-radius:22px;
+      transition:.3s;
+    }
+
+    .card:hover{
+      transform:translateY(-8px);
+      border-color:#22c55e;
+    }
+
+    .card h3{
+      margin:20px 0 15px;
+      font-size:1.3rem;
+    }
+
+    .card p{
+      color:#94a3b8;
+      line-height:1.7;
+    }
+
+    .icon{
+      font-size:2rem;
+    }
+
+    .cta{
+      text-align:center;
+      background:
+      linear-gradient(135deg, rgba(34,197,94,.15), rgba(56,189,248,.12));
+      border:1px solid rgba(255,255,255,.08);
+      padding:70px 30px;
+      border-radius:30px;
+    }
+
+    .cta h2{
+      font-size:3rem;
+      margin-bottom:20px;
+    }
+
+    .cta p{
+      color:#cbd5e1;
+      max-width:700px;
+      margin:auto;
+      margin-bottom:35px;
+      line-height:1.7;
+    }
+
+    footer{
+      border-top:1px solid rgba(255,255,255,.08);
+      padding:30px 20px;
+      text-align:center;
+      color:#94a3b8;
+    }
+
+    @media(max-width:768px){
+
+      h1{
+        font-size:2.8rem;
+      }
+
+      .section-title h2{
+        font-size:2rem;
+      }
+
+      .cta h2{
+        font-size:2rem;
+      }
+
+      nav ul{
+        display:none;
+      }
+
+    }
+
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <h1>TOP-e.IA</h1>
+<header>
+  <nav>
+    <div class="logo">TOP-e.IA</div>
+
+    <ul>
+      <li><a href="#servicios">Servicios</a></li>
+      <li><a href="#beneficios">Beneficios</a></li>
+      <li><a href="privacy.html">Privacidad</a></li>
+    </ul>
+  </nav>
+</header>
+
+<section class="hero">
+
+  <div class="hero-content">
+
+    <div class="badge">
+      Automatización + Marketing Inteligente
+    </div>
+
+    <h1>
+      Convierte procesos manuales en
+      <span class="gradient">ventas automáticas.</span>
+    </h1>
+
     <p>
-      Automatización inteligente para negocios.  
-      Creamos soluciones con bots en WhatsApp y sistemas automatizados
-      para mejorar tu atención al cliente y aumentar tus ventas.
+      Creamos sistemas inteligentes para negocios:
+      bots de WhatsApp, campañas masivas,
+      automatización de clientes y flujos de marketing
+      diseñados para ahorrar tiempo y aumentar conversiones.
     </p>
 
     <div class="buttons">
-      <a class="btn btn-email" href="mailto:pruebasiafenix@gmail.com">
-        Contactar por correo
+
+      <a class="btn btn-primary"
+      href="mailto:pruebasiafenix@gmail.com">
+        Contactar ahora
       </a>
 
-      <a class="btn btn-privacy" href="privacy.html">
-        Política de privacidad
+      <a class="btn btn-secondary"
+      href="#servicios">
+        Ver servicios
       </a>
+
     </div>
+
   </div>
 
-  <footer>
-    © 2026 TOP-e.IA
-  </footer>
+</section>
+
+<section id="servicios">
+
+  <div class="container">
+
+    <div class="section-title">
+      <h2>Servicios</h2>
+
+      <p>
+        Soluciones enfocadas en automatización,
+        marketing y optimización de atención al cliente.
+      </p>
+    </div>
+
+    <div class="services">
+
+      <div class="card">
+        <div class="icon">💬</div>
+
+        <h3>Automatización de WhatsApp</h3>
+
+        <p>
+          Bots inteligentes, respuestas automáticas,
+          seguimiento y captura de prospectos
+          para que nunca pierdas clientes.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="icon">📣</div>
+
+        <h3>Campañas Masivas</h3>
+
+        <p>
+          Campañas automatizadas para promociones,
+          seguimiento y comunicación estratégica.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="icon">⚙️</div>
+
+        <h3>Sistemas Inteligentes</h3>
+
+        <p>
+          Integraciones y automatizaciones
+          entre formularios, CRM,
+          correos y plataformas digitales.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<section id="beneficios">
+
+  <div class="container">
+
+    <div class="section-title">
+      <h2>¿Por qué automatizar?</h2>
+
+      <p>
+        Reducir tareas repetitivas te permite enfocarte
+        en ventas, estrategia y crecimiento real.
+      </p>
+    </div>
+
+    <div class="services">
+
+      <div class="card">
+        <h3>⚡ Respuestas rápidas</h3>
+
+        <p>
+          Atención inmediata incluso fuera de horario.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>📈 Más conversiones</h3>
+
+        <p>
+          Mejor seguimiento de clientes potenciales.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>🧠 Menos trabajo manual</h3>
+
+        <p>
+          Automatiza tareas repetitivas y ahorra tiempo.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<section>
+
+  <div class="container">
+
+    <div class="cta">
+
+      <h2>
+        Lleva tu negocio al siguiente nivel.
+      </h2>
+
+      <p>
+        Implementa automatización inteligente
+        y crea sistemas capaces de atender,
+        organizar y convertir clientes automáticamente.
+      </p>
+
+      <a class="btn btn-primary"
+      href="mailto:pruebasiafenix@gmail.com">
+        Solicitar información
+      </a>
+
+    </div>
+
+  </div>
+
+</section>
+
+<footer>
+  © 2026 TOP-e.IA · Automatización y Marketing Inteligente
+</footer>
 
 </body>
 </html>
