@@ -597,7 +597,7 @@
 
       const data = await response.json();
 
-      addMessage(data.reply || "Sin respuesta", "bot");
+      addMessage(data.output || "Sin respuesta", "bot");
 
     } catch (error) {
       addMessage("Error conectando con el servidor", "bot");
