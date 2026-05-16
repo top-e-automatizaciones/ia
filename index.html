@@ -435,6 +435,183 @@
 <footer>
   © 2026 TOP-e.IA · Automatización y Marketing Inteligente
 </footer>
+<!-- Floating Chat Button -->
+<div id="chat-widget">
+  <div id="chat-toggle">💬</div>
 
+  <div id="chat-box">
+    <div id="chat-header">
+      Asistente Virtual
+    </div>
+
+    <div id="chat-messages"></div>
+
+    <div id="chat-input-container">
+      <input type="text" id="chat-input" placeholder="Escribe un mensaje..." />
+      <button id="send-btn">➤</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  #chat-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    font-family: Arial, sans-serif;
+  }
+
+  #chat-toggle {
+    width: 60px;
+    height: 60px;
+    background: #111827;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 28px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    transition: 0.3s;
+  }
+
+  #chat-toggle:hover {
+    transform: scale(1.05);
+  }
+
+  #chat-box {
+    width: 320px;
+    height: 450px;
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.25);
+    margin-bottom: 15px;
+  }
+
+  #chat-header {
+    background: #111827;
+    color: white;
+    padding: 16px;
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  #chat-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background: #f9fafb;
+  }
+
+  .message {
+    margin-bottom: 12px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    max-width: 80%;
+    line-height: 1.4;
+  }
+
+  .user {
+    background: #111827;
+    color: white;
+    margin-left: auto;
+  }
+
+  .bot {
+    background: #e5e7eb;
+    color: black;
+  }
+
+  #chat-input-container {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+  }
+
+  #chat-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 12px;
+    border-radius: 10px;
+    background: #f3f4f6;
+  }
+
+  #send-btn {
+    margin-left: 10px;
+    border: none;
+    background: #111827;
+    color: white;
+    border-radius: 10px;
+    width: 50px;
+    cursor: pointer;
+    font-size: 18px;
+  }
+</style>
+
+<script>
+  const WEBHOOK_URL = "https://fenixautomatizacion.app.n8n.cloud/webhook/5c89db50-cb61-427f-ad45-bde8bb6fd8bd/chat";
+
+  const toggle = document.getElementById("chat-toggle");
+  const box = document.getElementById("chat-box");
+  const sendBtn = document.getElementById("send-btn");
+  const input = document.getElementById("chat-input");
+  const messages = document.getElementById("chat-messages");
+
+  toggle.addEventListener("click", () => {
+    box.style.display =
+      box.style.display === "flex" ? "none" : "flex";
+  });
+
+  function addMessage(text, sender) {
+    const div = document.createElement("div");
+    div.classList.add("message", sender);
+    div.innerText = text;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  async function sendMessage() {
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    addMessage(text, "user");
+    input.value = "";
+
+    try {
+      const response = await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: text
+        })
+      });
+
+      const data = await response.json();
+
+      addMessage(data.reply || "Sin respuesta", "bot");
+
+    } catch (error) {
+      addMessage("Error conectando con el servidor", "bot");
+      console.error(error);
+    }
+  }
+
+  sendBtn.addEventListener("click", sendMessage);
+
+  input.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      sendMessage();
+    }
+  });
+</script>
 </body>
 </html>
