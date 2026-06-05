@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PEAK × DOPPELGÄNGERS — Brief Interactivo</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Space+Grotesk:wght@600;700&display=swap');
+
+    :root {
+      --purple: #9147ff;
+      --purple-d: #6a21e0;
+      --purple-glow: rgba(145,71,255,0.25);
+      --yt: #ff0000;
+      --yt-glow: rgba(255,0,0,0.2);
+      --bg: #0e0e10;
+      --s1: #18181b;
+      --s2: #1f1f23;
+      --s3: #26262c;
+      --border: #2d2d35;
+      --text: #efeff1;
+      --muted: #adadb8;
+      --accent: #00d9ff;
+      --green: #00c26f;
+      --yellow: #ffca28;
+      --red: #ff4b4b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      padding: 1.5rem 1rem 4rem;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.25rem; }
+
+    /* ──────────── MODE TOGGLE ──────────── */
+    .mode-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--s1);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.75rem 1.25rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .mode-label { font-size: 0.78rem; color: var(--muted); font-weight: 600; letter-spacing: 0.05em; }
+    .toggle-btns { display: flex; gap: 0.4rem; }
+    .toggle-btn {
+      padding: 0.35rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .toggle-btn.twitch.active { background: var(--purple); border-color: var(--purple); color: #fff; }
+    .toggle-btn.youtube.active { background: var(--yt); border-color: var(--yt); color: #fff; }
+    .toggle-btn:not(.active):hover { border-color: var(--text); color: var(--text); }
+    .progress-wrap { display: flex; align-items: center; gap: 0.75rem; }
+    .progress-track {
+      width: 140px;
+      height: 6px;
+      background: var(--s3);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--purple);
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+    .progress-fill.yt { background: var(--yt); }
+    .progress-pct { font-size: 0.78rem; font-weight: 700; color: var(--purple); min-width: 30px; }
+    .progress-pct.yt { color: var(--yt); }
+
+    /* ──────────── HEADER ──────────── */
+    header {
+      text-align: center;
+      padding: 2.5rem 1.5rem 2rem;
+      background: var(--s1);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, var(--purple-glow), transparent 70%);
+      pointer-events: none;
+      transition: background 0.4s;
+    }
+    header.yt-mode::before {
+      background: radial-gradient(ellipse at 50% 0%, var(--yt-glow), transparent 70%);
+    }
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--red);
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.22rem 0.65rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+    }
+    .live-badge .dot { width: 7px; height: 7px; background: #fff; border-radius: 50%; animation: blink 1.2s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .yt-badge {
+      display: none;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--yt);
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.22rem 0.65rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+    }
+    header h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 0.6rem;
+    }
+    header h1 .p { color: var(--purple); }
+    header h1 .a { color: var(--accent); }
+    header .subtitle { color: var(--muted); font-size: 0.9rem; max-width: 560px; margin: 0 auto 1rem; line-height: 1.6; }
+    .yt-subtitle { display: none; }
+
+    /* suggestions ribbon */
+    .suggest-ribbon {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-top: 0.5rem;
+    }
+    .s-chip {
+      font-size: 0.73rem;
+      padding: 0.22rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: var(--s2);
+      cursor: default;
+    }
+    .s-chip.hot { border-color: var(--yellow); color: var(--yellow); background: rgba(255,202,40,0.08); }
+    .s-chip.yt-tip { display: none; border-color: var(--yt); color: var(--yt); background: rgba(255,0,0,0.08); }
+
+    /* ──────────── SECTION LABEL ──────────── */
+    .sec-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding-left: 0.1rem;
+    }
+
+    /* ──────────── COLABS ──────────── */
+    .colabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; }
+    .colab-card {
+      background: var(--s1);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.2rem 1.3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      transition: border-color 0.2s;
+    }
+    .colab-card:hover { border-color: var(--purple); }
+    .colab-card .role-tag { font-size: 0.67rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    .colab-card h3 { font-size: 1.05rem; font-weight: 700; }
+    .colab-card .desc { font-size: 0.83rem; color: var(--muted); line-height: 1.5; }
+    .colab-card .tasks { margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.3rem; }
+    .task-item { display: flex; gap: 0.5rem; font-size: 0.82rem; color: var(--text); }
+    .task-item::before { content: '→'; color: var(--purple); font-weight: 700; flex-shrink: 0; }
+    .host-card { border-color: rgba(145,71,255,0.5); }
+    .host-card .role-tag { color: var(--purple); }
+    .c2 .role-tag { color: var(--accent); }
+    .c3 .role-tag { color: var(--green); }
+
+    /* ──────────── RUNDOWN ──────────── */
+    .rundown {
+      background: var(--s1);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .seg {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+    .seg:last-child { border-bottom: none; }
+    .seg-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.9rem;
+      padding: 1rem 1.3rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .seg-header:hover { background: var(--s2); }
+    .seg-num {
+      background: var(--purple);
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 700;
+      min-width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 0.12rem;
+    }
+    .seg.done .seg-num { background: var(--green); }
+    .seg-main { flex: 1; }
+    .seg-main h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .seg-main h4 .time-chip {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.1rem 0.45rem;
+      border-radius: 4px;
+      background: var(--s3);
+      color: var(--muted);
+    }
+    .seg-main p { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+    .seg-actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+    .clip-btn {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .clip-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .clip-btn.clipped { background: rgba(0,217,255,0.1); border-color: var(--accent); color: var(--accent); }
+    .done-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 2px solid var(--border);
+      background: transparent;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+    }
+    .done-btn:hover { border-color: var(--green); }
+    .seg.done .done-btn { background: var(--green); border-color: var(--green); }
+    .seg.done .done-btn::after { content: '✓'; color: #fff; font-weight: 700; }
+    .seg-body {
+      display: none;
+      padding: 0 1.3rem 1rem 3.1rem;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .seg.open .seg-body { display: flex; }
+    .seg-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    @media(max-width:540px){ .seg-details-grid { grid-template-columns: 1fr; } }
+    .detail-box {
+      background: var(--s2);
+      border-radius: 8px;
+      padding: 0.8rem;
+    }
+    .detail-box h5 { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.5rem; }
+    .detail-box.twitch-box h5 { color: var(--purple); }
+    .detail-box.yt-box h5 { color: var(--yt); }
+    .detail-box.clip-box h5 { color: var(--accent); }
+    .detail-box ul { list-style: none; display: flex; flex-direction: column; gap: 0.3rem; }
+    .detail-box ul li { font-size: 0.8rem; color: var(--muted); display: flex; gap: 0.45rem; line-height: 1.45; }
+    .detail-box ul li::before { content: '·'; color: var(--purple); font-weight: 900; flex-shrink: 0; }
+    .detail-box.yt-box ul li::before { color: var(--yt); }
+    .detail-box.clip-box ul li::before { content: '🎬'; font-size: 0.7rem; }
+    .notes-area {
+      width: 100%;
+      background: var(--s3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.8rem;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
+      resize: vertical;
+      min-height: 60px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .notes-area:focus { border-color: var(--purple); }
+    .notes-area::placeholder { color: var(--muted); }
+
+    /* ──────────── CLIP TRACKER ──────────── */
+    .clip-tracker {
+      background: var(--s1);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 12px;
+      padding: 1.2rem 1.4rem;
+    }
+    .clip-tracker h3 { font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 0.75rem; }
+    #clip-list { display: flex; flex-direction: column; gap: 0.4rem; }
+    .clip-empty { font-size: 0.83rem; color: var(--muted); font-style: italic; }
+    .clip-entry {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--s2);
+      border-radius: 8px;
+      padding: 0.5rem 0.8rem;
+      font-size: 0.83rem;
+      gap: 0.75rem;
+    }
+    .clip-entry .clip-name { font-weight: 600; color: var(--accent); }
+    .clip-entry .clip-seg { color: var(--muted); font-size: 0.78rem; }
+    .remove-clip {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 0 0.2rem;
+    }
+    .remove-clip:hover { color: var(--red); }
+
+    /* ──────────── YT STRUCTURE ──────────── */
+    .yt-structure {
+      display: none;
+      background: var(--s1);
+      border: 1px solid rgba(255,0,0,0.3);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .yt-header-bar {
+      background: rgba(255,0,0,0.12);
+      padding: 0.9rem 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .yt-header-bar h3 { font-size: 0.95rem; font-weight: 700; color: var(--yt); }
+    .yt-header-bar span { font-size: 0.78rem; color: var(--muted); }
+    .yt-section { border-bottom: 1px solid var(--border); padding: 1rem 1.3rem; }
+    .yt-section:last-child { border-bottom: none; }
+    .yt-section h4 { font-size: 0.85rem; font-weight: 700; color: var(--yt); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .yt-section p, .yt-section li { font-size: 0.83rem; color: var(--muted); line-height: 1.55; }
+    .yt-section ul { list-style: none; display: flex; flex-direction: column; gap: 0.3rem; padding-left: 0; }
+    .yt-section ul li { display: flex; gap: 0.5rem; }
+    .yt-section ul li::before { content: '▶'; color: var(--yt); font-size: 0.6rem; flex-shrink: 0; margin-top: 0.25rem; }
+    .chapter-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .chapter-item {
+      display: flex;
+      gap: 0.8rem;
+      align-items: flex-start;
+      background: var(--s2);
+      border-radius: 8px;
+      padding: 0.65rem 0.9rem;
+    }
+    .chapter-ts {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--yt);
+      min-width: 42px;
+      flex-shrink: 0;
+      font-family: monospace;
+    }
+    .chapter-info strong { font-size: 0.85rem; font-weight: 700; display: block; margin-bottom: 0.15rem; }
+    .chapter-info span { font-size: 0.78rem; color: var(--muted); }
+    .title-suggestions { display: flex; flex-direction: column; gap: 0.4rem; }
+    .title-opt {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      background: var(--s2);
+      border-radius: 8px;
+      padding: 0.6rem 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .title-opt:hover { background: var(--s3); }
+    .title-opt span { font-size: 0.83rem; line-height: 1.5; }
+    .title-opt .copy-icon { color: var(--muted); font-size: 0.8rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .thumb-tips { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    @media(max-width:540px){ .thumb-tips { grid-template-columns: 1fr; } }
+    .thumb-tip-item {
+      background: var(--s2);
+      border-radius: 8px;
+      padding: 0.65rem 0.9rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .thumb-tip-item strong { color: var(--text); display: block; margin-bottom: 0.2rem; font-size: 0.82rem; }
+
+    /* ──────────── TOPICS ──────────── */
+    .topics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+    .topic-card {
+      background: var(--s1);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .topic-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 1.1rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s;
+    }
+    .topic-header:hover { background: var(--s2); }
+    .topic-header h4 { font-size: 0.88rem; font-weight: 700; display: flex; gap: 0.45rem; align-items: center; }
+    .topic-header .chevron { color: var(--muted); font-size: 0.7rem; transition: transform 0.2s; }
+    .topic-card.open .chevron { transform: rotate(180deg); }
+    .topic-body { display: none; padding: 0 1.1rem 0.9rem; }
+    .topic-card.open .topic-body { display: block; }
+    .topic-body ul { list-style: none; display: flex; flex-direction: column; gap: 0.35rem; }
+    .topic-body ul li { font-size: 0.82rem; color: var(--muted); display: flex; gap: 0.5rem; line-height: 1.45; }
+    .topic-body ul li::before { content: '•'; color: var(--accent); flex-shrink: 0; }
+
+    /* ──────────── BOTTOM PANELS ──────────── */
+    .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media(max-width:580px){ .bottom-grid { grid-template-columns: 1fr; } }
+    .info-box {
+      background: var(--s1);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.1rem 1.2rem;
+    }
+    .info-box h3 { font-size: 0.88rem; font-weight: 700; margin-bottom: 0.6rem; }
+    .info-box.purple { border-left: 3px solid var(--purple); }
+    .info-box.purple h3 { color: var(--purple); }
+    .info-box.cyan { border-left: 3px solid var(--accent); }
+    .info-box.cyan h3 { color: var(--accent); }
+    .info-box ul { list-style: none; display: flex; flex-direction: column; gap: 0.35rem; }
+    .info-box ul li { font-size: 0.82rem; color: var(--muted); display: flex; gap: 0.5rem; line-height: 1.45; }
+    .info-box.purple ul li::before { content: '✓'; color: var(--purple); font-weight: 700; }
+    .info-box.cyan ul li::before { content: '⚡'; font-size: 0.75rem; }
+
+    /* ──────────── GAME BOX ──────────── */
+    .game-box {
+      background: var(--s1);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--green);
+      border-radius: 12px;
+      padding: 1.1rem 1.3rem;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    .game-icon { font-size: 2rem; line-height: 1; flex-shrink: 0; }
+    .game-box h3 { color: var(--green); font-size: 0.93rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .game-box p { font-size: 0.82rem; color: var(--muted); line-height: 1.55; }
+    .tips-row { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.5rem; }
+    .tip { font-size: 0.7rem; font-weight: 600; padding: 0.18rem 0.55rem; border-radius: 999px; background: rgba(0,194,111,0.1); color: var(--green); border: 1px solid rgba(0,194,111,0.3); }
+
+    /* ──────────── TOAST ──────────── */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: var(--s2);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.55rem 1rem;
+      border-radius: 8px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s;
+      pointer-events: none;
+      z-index: 999;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ──────────── FOOTER ──────────── */
+    footer { text-align: center; margin-top: 1rem; color: var(--muted); font-size: 0.76rem; line-height: 1.7; }
+    footer span { color: var(--purple); font-weight: 700; }
+    footer span.yt { color: var(--yt); }
+
+    /* ──────────── YT-mode overrides ──────────── */
+    body.yt-mode .yt-badge { display: inline-flex; }
+    body.yt-mode .live-badge { display: none; }
+    body.yt-mode .yt-subtitle { display: block; }
+    body.yt-mode .tw-subtitle { display: none; }
+    body.yt-mode .s-chip.yt-tip { display: inline; }
+    body.yt-mode .yt-structure { display: block; }
+    body.yt-mode .progress-fill { background: var(--yt); }
+    body.yt-mode .progress-pct { color: var(--yt); }
+  </style>
+</head>
+<body>
+<div id="toast"></div>
+<div class="container">
+
+  <!-- MODE TOGGLE -->
+  <div class="mode-bar">
+    <span class="mode-label">Vista actual</span>
+    <div class="toggle-btns">
+      <button class="toggle-btn twitch active" onclick="setMode('twitch')">🟣 Twitch — En vivo</button>
+      <button class="toggle-btn youtube" onclick="setMode('youtube')">🔴 YouTube — Post-producción</button>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+      <span class="progress-pct" id="prog-pct">0%</span>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header id="main-header">
+    <div class="live-badge"><div class="dot"></div>En vivo</div>
+    <div class="yt-badge">🎬 Producción YouTube</div>
+    <h1><span class="p">PEAK</span> × <span class="a">DOPPELGÄNGERS</span></h1>
+    <p class="subtitle tw-subtitle">Brief del directo — tres cabezas, una montaña y el misterio del doble.</p>
+    <p class="subtitle yt-subtitle">Guía de post-producción — estructura del video largo + clips destacados para YouTube.</p>
+    <div class="suggest-ribbon">
+      <span class="s-chip hot">⭐ Duración estimada: 2–2.5h</span>
+      <span class="s-chip">3 streamers</span>
+      <span class="s-chip">Co-op PEAK</span>
+      <span class="s-chip">Debate + gameplay</span>
+      <span class="s-chip yt-tip">📌 Capítulos listos para copiar</span>
+      <span class="s-chip yt-tip">🎬 Momentos para recortar marcados</span>
+    </div>
+  </header>
+
+  <!-- COLABORADORES -->
+  <p class="sec-label">👥 Equipo del directo</p>
+  <div class="colabs">
+    <div class="colab-card host-card">
+      <span class="role-tag">🎙 Host principal</span>
+      <h3>LSFenix</h3>
+      <p class="desc">Conduce el stream, marca el ritmo del juego y modera la conversación.</p>
+      <div class="tasks">
+        <div class="task-item">Abrir y cerrar cada segmento del rundown</div>
+        <div class="task-item">Tomar decisiones en el juego (líder de escalada)</div>
+        <div class="task-item">Conectar el tema con lo que pasa en partida</div>
+        <div class="task-item">Anotar en tiempo real los momentos para clipear</div>
+      </div>
+    </div>
+    <div class="colab-card c2">
+      <span class="role-tag">🧠 Colab — Debates</span>
+      <h3>HeyQuore</h3>
+      <p class="desc">Rol de contraste intelectual: introduce datos, defiende posiciones, eleva el tema.</p>
+      <div class="tasks">
+        <div class="task-item">Traer 2-3 casos documentados de doppelgängers</div>
+        <div class="task-item">Hacer de "abogado del diablo" en las discusiones</div>
+        <div class="task-item">Lanzar preguntas al chat durante las pausas</div>
+        <div class="task-item">Relacionar los casos con psicología o folklore</div>
+      </div>
+    </div>
+    <div class="colab-card c3">
+      <span class="role-tag">😂 Colab — Energía</span>
+      <h3>MoonGaming_98</h3>
+      <p class="desc">El caos controlado: reacciones, humor, anécdotas y mantener la vibra alta.</p>
+      <div class="tasks">
+        <div class="task-item">Reacciones exageradas a las caídas del juego</div>
+        <div class="task-item">Anécdotas propias sobre confusiones de identidad</div>
+        <div class="task-item">Leer superchat / mensajes del chat en vivo</div>
+        <div class="task-item">Proponer referencias absurdas (anime, memes, etc.)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME INFO -->
+  <div class="game-box">
+    <div class="game-icon">⛰️</div>
+    <div>
+      <h3>PEAK — Co-op de escalada</h3>
+      <p>Juego de supervivencia en primera persona donde el objetivo es llegar a la cima de una montaña imposible. El caos cooperativo lo hace perfecto para el directo: la frustración colectiva y los errores grupales generan los mejores momentos orgánicos — exactamente lo que necesitas para clips de YouTube.</p>
+      <div class="tips-row">
+        <span class="tip">Co-op 2-4 jugadores</span>
+        <span class="tip">Caídas frecuentes</span>
+        <span class="tip">Fácil de entender para el chat</span>
+        <span class="tip">Momentos épicos garantizados</span>
+        <span class="tip">Ideal para shorts</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RUNDOWN INTERACTIVO -->
+  <p class="sec-label">📋 Rundown — haz clic en cada segmento para expandir</p>
+  <div class="rundown" id="rundown">
+
+    <div class="seg" id="seg-0">
+      <div class="seg-header" onclick="toggleSeg(0)">
+        <div class="seg-num">1</div>
+        <div class="seg-main">
+          <h4>Intro — Presentaciones y premisa <span class="time-chip">~10 min</span></h4>
+          <p>Saludo, presentar colabs, explicar el plan del directo al chat.</p>
+        </div>
+        <div class="seg-actions">
+          <button class="clip-btn" onclick="toggleClip(event,0,'Intro — Gancho inicial')">🎬 Clip</button>
+          <button class="done-btn" onclick="toggleDone(event,0)"></button>
+        </div>
+      </div>
+      <div class="seg-body">
+        <div class="seg-details-grid">
+          <div class="detail-box twitch-box">
+            <h5>🟣 En vivo (Twitch)</h5>
+            <ul>
+              <li>Saludar chat, presentar a HeyQuore y MoonGaming_98</li>
+              <li>Explicar el juego PEAK a quien no lo conozca</li>
+              <li>Plantear la pregunta del directo: <em>"¿Es tu doppelgänger tú o alguien más?"</em></li>
+              <li>Primera pregunta al chat: <em>"¿Alguien te confundió alguna vez con otra persona?"</em></li>
+            </ul>
+          </div>
+          <div class="detail-box yt-box">
+            <h5>🔴 YouTube</h5>
+            <ul>
+              <li>Gancho en los primeros 30 segundos: mostrar el momento más épico del stream</li>
+              <li>Luego cortar a la presentación real (técnica "open in media res")</li>
+              <li>No necesita ser largo — máx 2 min de intro editada</li>
+              <li>Subtitular la presentación de los tres streamers</li>
+            </ul>
+          </div>
+        </div>
+        <div class="detail-box clip-box">
+          <h5>🎬 Momentos a clipear</h5>
+          <ul>
+            <li>La primera reacción de MoonGaming_98 al ver el mapa de la montaña</li>
+            <li>Si alguien del chat comparte una historia de confusión de identidad, leerla en voz alta</li>
+          </ul>
+        </div>
+        <textarea class="notes-area" placeholder="Notas para este segmento..."></textarea>
+      </div>
+    </div>
+
+    <div class="seg" id="seg-1">
+      <div class="seg-header" onclick="toggleSeg(1)">
+        <div class="seg-num">2</div>
+        <div class="seg-main">
+          <h4>Primera partida + ¿Qué es un doppelgänger? <span class="time-chip">~25 min</span></h4>
+          <p>Empezamos a escalar mientras HeyQuore introduce el origen del término.</p>
+        </div>
+        <div class="seg-actions">
+          <button class="clip-btn" onclick="toggleClip(event,1,'Primera partida — Caída épica + dato de folklore')">🎬 Clip</button>
+          <button class="done-btn" onclick="toggleDone(event,1)"></button>
+        </div>
+      </div>
+      <div class="seg-body">
+        <div class="seg-details-grid">
+          <div class="detail-box twitch-box">
+            <h5>🟣 En vivo (Twitch)</h5>
+            <ul>
+              <li>HeyQuore: origen alemán "doble caminante" — presagio de muerte</li>
+              <li>Mitología nórdica (vardøger) y egipcia (Ka del alma)</li>
+              <li>Conectar con PEAK: <em>"Escalar hacia la cima es como perseguir a tu otro yo"</em></li>
+              <li>MoonGaming exagera cada caída — compararlo con encontrar a tu doble</li>
+            </ul>
+          </div>
+          <div class="detail-box yt-box">
+            <h5>🔴 YouTube</h5>
+            <ul>
+              <li>Capítulo: <strong>"00:XX — El origen del Doppelgänger"</strong></li>
+              <li>Cortar las partes de gameplay sin conversación interesante</li>
+              <li>Insertar una imagen/gráfico de las mitologías mencionadas (overlay)</li>
+              <li>El debate debe fluir sin silencios de más de 8 seg</li>
+            </ul>
+          </div>
+        </div>
+        <div class="detail-box clip-box">
+          <h5>🎬 Momentos a clipear</h5>
+          <ul>
+            <li>Primera caída grande del grupo + el comentario de alguien sobre doppelgängers</li>
+            <li>Si alguien dice algo que genere silencio incómodo (los mejores clips)</li>
+            <li>La primera discusión real entre los tres sobre el tema</li>
+          </ul>
+        </div>
+        <textarea class="notes-area" placeholder="Notas para este segmento..."></textarea>
+      </div>
+    </div>
+
+    <div class="seg" id="seg-2">
+      <div class="seg-header" onclick="toggleSeg(2)">
+        <div class="seg-num">3</div>
+        <div class="seg-main">
+          <h4>Casos reales + ciencia del doble <span class="time-chip">~25 min</span></h4>
+          <p>Segunda partida mientras debatimos casos documentados y la explicación científica.</p>
+        </div>
+        <div class="seg-actions">
+          <button class="clip-btn" onclick="toggleClip(event,2,'Debate casos reales — Momento WTF')">🎬 Clip</button>
+          <button class="done-btn" onclick="toggleDone(event,2)"></button>
+        </div>
+      </div>
+      <div class="seg-body">
+        <div class="seg-details-grid">
+          <div class="detail-box twitch-box">
+            <h5>🟣 En vivo (Twitch)</h5>
+            <ul>
+              <li>Lincoln: vio su doble días antes del asesinato</li>
+              <li>Autoscopia — ver tu cuerpo desde afuera</li>
+              <li>Síndrome de Capgras: creer que alguien fue reemplazado por un impostor</li>
+              <li>Debate: ¿coincidencia genética o experiencia disociativa?</li>
+              <li>Preguntar al chat: <em>"¿Creen en los doppelgängers o es solo psicología?"</em></li>
+            </ul>
+          </div>
+          <div class="detail-box yt-box">
+            <h5>🔴 YouTube</h5>
+            <ul>
+              <li>Capítulo: <strong>"00:XX — Casos reales que no tienen explicación"</strong></li>
+              <li>Insertar superposición de texto con el nombre de cada caso</li>
+              <li>Este segmento es el CORE del video — no recortar demasiado</li>
+              <li>Si hay 3 casos fuertes, pueden ser 3 Shorts independientes</li>
+            </ul>
+          </div>
+        </div>
+        <div class="detail-box clip-box">
+          <h5>🎬 Momentos a clipear</h5>
+          <ul>
+            <li>El primer "momento WTF" cuando alguien no puede creer el caso de Lincoln</li>
+            <li>El debate más intenso entre HeyQuore y MoonGaming sobre la explicación científica</li>
+            <li>Si alguien del chat manda una experiencia propia que los deja en silencio</li>
+          </ul>
+        </div>
+        <textarea class="notes-area" placeholder="Notas para este segmento..."></textarea>
+      </div>
+    </div>
+
+    <div class="seg" id="seg-3">
+      <div class="seg-header" onclick="toggleSeg(3)">
+        <div class="seg-num">4</div>
+        <div class="seg-main">
+          <h4>Doppelgängers en cultura pop + debate <span class="time-chip">~25 min</span></h4>
+          <p>Tercera partida mientras exploramos cine, series, anime y videojuegos.</p>
+        </div>
+        <div class="seg-actions">
+          <button class="clip-btn" onclick="toggleClip(event,3,'Cultura pop — Debate épico Us vs Black Swan')">🎬 Clip</button>
+          <button class="done-btn" onclick="toggleDone(event,3)"></button>
+        </div>
+      </div>
+      <div class="seg-body">
+        <div class="seg-details-grid">
+          <div class="detail-box twitch-box">
+            <h5>🟣 En vivo (Twitch)</h5>
+            <ul>
+              <li><em>Us</em> (Jordan Peele): dobles como trauma reprimido</li>
+              <li><em>Black Swan</em>: el doble como alter ego destructivo</li>
+              <li>Anime: shadow clones de Naruto, Numbers de Re:Zero</li>
+              <li>Juegos: Hollow Knight, Control, Persona, Nier Automata</li>
+              <li>El chat vota: ¿cuál es el mejor doppelgänger de la ficción?</li>
+            </ul>
+          </div>
+          <div class="detail-box yt-box">
+            <h5>🔴 YouTube</h5>
+            <ul>
+              <li>Capítulo: <strong>"00:XX — Hollywood y los dobles que nos asustan"</strong></li>
+              <li>Las referencias a obras conocidas facilitan la retención del video</li>
+              <li>El debate de cultura pop es ideal para el inicio del video (alto engagement)</li>
+              <li>Cortar el listado puro — quedarse solo con los debates reales</li>
+            </ul>
+          </div>
+        </div>
+        <div class="detail-box clip-box">
+          <h5>🎬 Momentos a clipear</h5>
+          <ul>
+            <li>La discusión más intensa sobre qué película lo representa mejor</li>
+            <li>La primera vez que MoonGaming haga una comparación absurda y funcione</li>
+            <li>Reacción del chat a la votación del mejor doppelgänger de ficción</li>
+          </ul>
+        </div>
+        <textarea class="notes-area" placeholder="Notas para este segmento..."></textarea>
+      </div>
+    </div>
+
+    <div class="seg" id="seg-4">
+      <div class="seg-header" onclick="toggleSeg(4)">
+        <div class="seg-num">5</div>
+        <div class="seg-main">
+          <h4>Bloque interactivo — ¿Quién es tu doble? <span class="time-chip">~15 min</span></h4>
+          <p>El chat manda celebs, personajes o fotos. Los tres votan y el caos ocurre.</p>
+        </div>
+        <div class="seg-actions">
+          <button class="clip-btn" onclick="toggleClip(event,4,'Interactivo — Reacción explosiva del chat')">🎬 Clip</button>
+          <button class="done-btn" onclick="toggleDone(event,4)"></button>
+        </div>
+      </div>
+      <div class="seg-body">
+        <div class="seg-details-grid">
+          <div class="detail-box twitch-box">
+            <h5>🟣 En vivo (Twitch)</h5>
+            <ul>
+              <li>El chat sugiere celebridades o personajes para comparar entre sí</li>
+              <li>Los tres votan: ¿son doppelgängers o no?</li>
+              <li>Incluir a streamers conocidos si el chat lo pide (con humor)</li>
+              <li>LSFenix coordina el flujo para que no se desborde</li>
+            </ul>
+          </div>
+          <div class="detail-box yt-box">
+            <h5>🔴 YouTube</h5>
+            <ul>
+              <li>Capítulo: <strong>"00:XX — El chat decide quién es el doble de quién"</strong></li>
+              <li>Segmento ideal para cortar a 60–90 seg y hacer un Short</li>
+              <li>Mostrar el chat en pantalla si la plataforma lo permite</li>
+              <li>La reacción de los tres a una comparación inesperada = thumbnail</li>
+            </ul>
+          </div>
+        </div>
+        <div class="detail-box clip-box">
+          <h5>🎬 Momentos a clipear</h5>
+          <ul>
+            <li>La comparación que más los sorprende (cara de shock = Short)</li>
+            <li>El momento en que alguien dice "eso no tiene vuelta atrás"</li>
+            <li>Si el chat se divide en dos bandos y se forma una guerra de opiniones</li>
+          </ul>
+        </div>
+        <textarea class="notes-area" placeholder="Notas para este segmento..."></textarea>
+      </div>
+    </div>
+
+    <div class="seg" id="seg-5">
+      <div class="seg-header" onclick="toggleSeg(5)">
+        <div class="seg-num">6</div>
+        <div class="seg-main">
+          <h4>Intento final de la cima + reflexión y cierre <span class="time-chip">~15 min</span></h4>
+          <p>Último push al summit mientras cerramos el debate y agradecemos al chat.</p>
+        </div>
+        <div class="seg-actions">
+          <button class="clip-btn" onclick="toggleClip(event,5,'Cierre — Llegamos a la cima / reflexión final')">🎬 Clip</button>
+          <button class="done-btn" onclick="toggleDone(event,5)"></button>
+        </div>
+      </div>
+      <div class="seg-body">
+        <div class="seg-details-grid">
+          <div class="detail-box twitch-box">
+            <h5>🟣 En vivo (Twitch)</h5>
+            <ul>
+              <li>Último intento serio de llegar a la cima los tres juntos</li>
+              <li>Reflexión final: ¿el doppelgänger es amenaza, reflejo o deseo?</li>
+              <li>Cada uno da su conclusión personal sobre el tema</li>
+              <li>Anuncio del próximo stream + agradecer al chat</li>
+            </ul>
+          </div>
+          <div class="detail-box yt-box">
+            <h5>🔴 YouTube</h5>
+            <ul>
+              <li>Capítulo: <strong>"00:XX — La conclusión que nadie esperaba"</strong></li>
+              <li>Si llegan a la cima: ese momento DEBE estar en el video (final épico)</li>
+              <li>Si no llegan: el fail colectivo también es buen cierre (honesto y divertido)</li>
+              <li>La reflexión final de cada uno = pantalla dividida, muy compartible</li>
+            </ul>
+          </div>
+        </div>
+        <div class="detail-box clip-box">
+          <h5>🎬 Momentos a clipear</h5>
+          <ul>
+            <li>El momento exacto de llegar a la cima (o la caída más trágica)</li>
+            <li>La conclusión más contundente sobre el doppelgänger (la frase del video)</li>
+            <li>El "hasta luego" al chat si tiene energía y carisma</li>
+          </ul>
+        </div>
+        <textarea class="notes-area" placeholder="Notas para este segmento..."></textarea>
+      </div>
+    </div>
+
+  </div><!-- /rundown -->
+
+  <!-- CLIP TRACKER -->
+  <div class="clip-tracker">
+    <h3>🎬 Momentos marcados para clipear</h3>
+    <div id="clip-list"><p class="clip-empty">Todavía no marcaste ningún momento. Usa los botones "Clip" en cada segmento.</p></div>
+  </div>
+
+  <!-- TOPICS ACCORDION -->
+  <p class="sec-label">🪞 Temas de doppelgängers — expandir para ver puntos</p>
+  <div class="topics-grid">
+    <div class="topic-card" id="t0">
+      <div class="topic-header" onclick="toggleTopic(0)">
+        <h4>📖 Historia y folclore</h4><span class="chevron">▼</span>
+      </div>
+      <div class="topic-body">
+        <ul>
+          <li>Origen germánico — presagio de muerte o enfermedad</li>
+          <li>Mitología nórdica: vardøger (precede a tu llegada)</li>
+          <li>Mitología egipcia: Ka, el doble del alma</li>
+          <li>Lincoln vio su doble días antes de ser asesinado</li>
+          <li>En el folclore, ver tu doppelgänger es mortal</li>
+        </ul>
+      </div>
+    </div>
+    <div class="topic-card" id="t1">
+      <div class="topic-header" onclick="toggleTopic(1)">
+        <h4>🧠 Ciencia y psicología</h4><span class="chevron">▼</span>
+      </div>
+      <div class="topic-body">
+        <ul>
+          <li>Autoscopia: percibir tu propio cuerpo desde afuera</li>
+          <li>Síndrome de Capgras — alguien fue reemplazado por un impostor</li>
+          <li>Disociación y episodios de despersonalización</li>
+          <li>Genética: probabilidad real de tener un doble visual</li>
+          <li>Experiencias cercanas a la muerte y "segundo yo"</li>
+        </ul>
+      </div>
+    </div>
+    <div class="topic-card" id="t2">
+      <div class="topic-header" onclick="toggleTopic(2)">
+        <h4>🎬 Cultura pop</h4><span class="chevron">▼</span>
+      </div>
+      <div class="topic-body">
+        <ul>
+          <li><em>Us</em> (2019) — los Tethered como trauma reprimido</li>
+          <li><em>Black Swan</em> — el alter ego como destrucción</li>
+          <li><em>The Double</em> (2013) — Dostoievski existencialista</li>
+          <li>Anime: shadow clones (Naruto), Numbers (Re:Zero)</li>
+          <li>Juegos: Hollow Knight, Nier Automata 2B/A2, Persona</li>
+        </ul>
+      </div>
+    </div>
+    <div class="topic-card" id="t3">
+      <div class="topic-header" onclick="toggleTopic(3)">
+        <h4>💬 Preguntas para el chat</h4><span class="chevron">▼</span>
+      </div>
+      <div class="topic-body">
+        <ul>
+          <li>¿Te confundieron alguna vez con otra persona?</li>
+          <li>¿Preferirías encontrar a tu doble o que no exista?</li>
+          <li>Si tu doppelgänger hace algo malo, ¿vos sos responsable?</li>
+          <li>¿Cuál es el mejor doppelgänger de la ficción?</li>
+          <li>¿El doppelgänger es amenaza, reflejo o deseo?</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- YOUTUBE STRUCTURE -->
+  <div class="yt-structure" id="yt-section">
+    <div class="yt-header-bar">
+      <h3>🔴 Estructura del video largo — YouTube</h3>
+      <span>Copia y pega los capítulos en la descripción del video</span>
+    </div>
+
+    <div class="yt-section">
+      <h4>📌 Capítulos sugeridos (copiar a descripción)</h4>
+      <div class="chapter-list">
+        <div class="chapter-item"><span class="chapter-ts">00:00</span><div class="chapter-info"><strong>Intro — El doble que te persigue</strong><span>Gancho + presentación de LSFenix, HeyQuore y MoonGaming_98</span></div></div>
+        <div class="chapter-item"><span class="chapter-ts">XX:XX</span><div class="chapter-info"><strong>¿Qué es un Doppelgänger?</strong><span>Origen alemán, folclore nórdico y egipcio — primeras partidas de PEAK</span></div></div>
+        <div class="chapter-item"><span class="chapter-ts">XX:XX</span><div class="chapter-info"><strong>Casos reales que no tienen explicación</strong><span>Lincoln, autoscopia, Síndrome de Capgras</span></div></div>
+        <div class="chapter-item"><span class="chapter-ts">XX:XX</span><div class="chapter-info"><strong>Hollywood y los dobles que nos asustan</strong><span>Us, Black Swan, anime y videojuegos</span></div></div>
+        <div class="chapter-item"><span class="chapter-ts">XX:XX</span><div class="chapter-info"><strong>El chat decide: ¿quién es el doble de quién?</strong><span>Segmento interactivo — caos puro</span></div></div>
+        <div class="chapter-item"><span class="chapter-ts">XX:XX</span><div class="chapter-info"><strong>¿Llegamos a la cima? — Conclusión final</strong><span>Reflexión y cierre + el intento definitivo en PEAK</span></div></div>
+      </div>
+    </div>
+
+    <div class="yt-section">
+      <h4>✏️ Títulos sugeridos para YouTube</h4>
+      <div class="title-suggestions">
+        <div class="title-opt" onclick="copyTitle(this, 'Subimos la montaña más difícil mientras hablamos de DOPPELGÄNGERS 😨 ft. HeyQuore & MoonGaming_98')">
+          <span class="copy-icon">📋</span>
+          <span>Subimos la montaña más difícil mientras hablamos de DOPPELGÄNGERS 😨 ft. HeyQuore &amp; MoonGaming_98</span>
+        </div>
+        <div class="title-opt" onclick="copyTitle(this, '¿Existe tu doble en algún lugar? | PEAK + La ciencia del Doppelgänger [ft. HeyQuore & MoonGaming_98]')">
+          <span class="copy-icon">📋</span>
+          <span>¿Existe tu doble en algún lugar? | PEAK + La ciencia del Doppelgänger [ft. HeyQuore &amp; MoonGaming_98]</span>
+        </div>
+        <div class="title-opt" onclick="copyTitle(this, 'PEAK en co-op con mis colabs mientras debatimos si los doppelgängers son REALES')">
+          <span class="copy-icon">📋</span>
+          <span>PEAK en co-op con mis colabs mientras debatimos si los doppelgängers son REALES</span>
+        </div>
+        <div class="title-opt" onclick="copyTitle(this, 'La montaña más caótica del año + el misterio del doppelgänger ft. @HeyQuore @MoonGaming98')">
+          <span class="copy-icon">📋</span>
+          <span>La montaña más caótica del año + el misterio del doppelgänger ft. @HeyQuore @MoonGaming98</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="yt-section">
+      <h4>🖼️ Ideas para el thumbnail</h4>
+      <div class="thumb-tips">
+        <div class="thumb-tip-item"><strong>Cara de shock x2</strong>Los tres con expresión de no poder creer algo — fondo rojo/morado con texto grande "DOPPELGÄNGER"</div>
+        <div class="thumb-tip-item"><strong>Espejo roto</strong>Una foto de LSFenix junto a una sombra/silueta idéntica. Contraste oscuro.</div>
+        <div class="thumb-tip-item"><strong>Montaña + ojo</strong>Captura de PEAK con un ojo enorme en el fondo de la montaña. Misterioso y clickbait sano.</div>
+        <div class="thumb-tip-item"><strong>Dos mitades</strong>Thumbnail partido: mitad PEAK gameplay / mitad imagen de un doppelgänger perturbador.</div>
+      </div>
+    </div>
+
+    <div class="yt-section">
+      <h4>✂️ Sugerencias de edición</h4>
+      <ul>
+        <li>Duración ideal del video final: <strong>45–75 minutos</strong> (lo suficiente para retención, sin perder al viewer)</li>
+        <li>Eliminar silencios de más de 6 segundos donde no pase nada relevante</li>
+        <li>Subtitular automáticamente (YouTube lo hace) y corregir nombres propios</li>
+        <li>Insertar textos/gráficos cuando se mencionen los casos reales o términos científicos</li>
+        <li>Cada caída épica en PEAK → sonido exagerado en edición (hit marker, reverb)</li>
+        <li>Crear 3–5 Shorts a partir de los momentos marcados como "Clip"</li>
+        <li>Thumbnail A/B test con dos versiones si la plataforma lo permite</li>
+        <li>Fijar el comentario con los timestamps de los capítulos</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- BOTTOM INFO -->
+  <div class="bottom-grid">
+    <div class="info-box purple">
+      <h3>📌 Reglas del directo</h3>
+      <ul>
+        <li>No spoilear si llegaron a la cima antes del cierre</li>
+        <li>Si el juego se pone muy tenso, pausar el tema y volver después</li>
+        <li>Si alguien cae, el equipo espera — sin excepciones</li>
+        <li>Una anécdota personal sobre identidad/confusión cada uno mínimo</li>
+        <li>Si el chat se desborda, LSFenix tiene la última palabra</li>
+      </ul>
+    </div>
+    <div class="info-box cyan">
+      <h3>⚡ Mantener la energía</h3>
+      <ul>
+        <li>Silencio de más de 5 seg → lanzar pregunta al chat</li>
+        <li>MoonGaming activa reacciones en cada caída del juego</li>
+        <li>Cada bloque arranca con un dato o caso nuevo de HeyQuore</li>
+        <li>Comparar lo que pasa en PEAK con el tema siempre que se pueda</li>
+        <li>Cerrar cada segmento con una pregunta abierta, nunca con una afirmación</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    Brief para <span>LSFenix</span> · <span>HeyQuore</span> · <span>MoonGaming_98</span><br>
+    Directo Twitch → Video largo YouTube &nbsp;·&nbsp; Generado con ✦ Claude
+  </footer>
+
+</div>
+
+<script>
+  // MODE
+  function setMode(mode) {
+    document.body.classList.toggle('yt-mode', mode === 'youtube');
+    document.getElementById('main-header').classList.toggle('yt-mode', mode === 'youtube');
+    document.querySelector('.toggle-btn.twitch').classList.toggle('active', mode === 'twitch');
+    document.querySelector('.toggle-btn.youtube').classList.toggle('active', mode === 'youtube');
+    const fill = document.getElementById('prog-fill');
+    const pct = document.getElementById('prog-pct');
+    fill.classList.toggle('yt', mode === 'youtube');
+    pct.classList.toggle('yt', mode === 'youtube');
+    showToast(mode === 'youtube' ? '🔴 Modo YouTube activado' : '🟣 Modo Twitch activado');
+  }
+
+  // SEGMENTS
+  function toggleSeg(i) {
+    const seg = document.getElementById('seg-' + i);
+    seg.classList.toggle('open');
+  }
+
+  function toggleDone(e, i) {
+    e.stopPropagation();
+    const seg = document.getElementById('seg-' + i);
+    seg.classList.toggle('done');
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const total = document.querySelectorAll('.seg').length;
+    const done = document.querySelectorAll('.seg.done').length;
+    const pct = Math.round((done / total) * 100);
+    document.getElementById('prog-fill').style.width = pct + '%';
+    document.getElementById('prog-pct').textContent = pct + '%';
+  }
+
+  // CLIPS
+  const clips = {};
+  function toggleClip(e, i, name) {
+    e.stopPropagation();
+    const btn = e.currentTarget;
+    if (clips[i]) {
+      delete clips[i];
+      btn.classList.remove('clipped');
+      btn.textContent = '🎬 Clip';
+    } else {
+      clips[i] = { name, seg: i + 1 };
+      btn.classList.add('clipped');
+      btn.textContent = '✓ Marcado';
+      showToast('🎬 Momento marcado para clipear');
+    }
+    renderClips();
+  }
+
+  function renderClips() {
+    const list = document.getElementById('clip-list');
+    const keys = Object.keys(clips);
+    if (keys.length === 0) {
+      list.innerHTML = '<p class="clip-empty">Todavía no marcaste ningún momento. Usa los botones "Clip" en cada segmento.</p>';
+      return;
+    }
+    list.innerHTML = keys.map(k => `
+      <div class="clip-entry">
+        <div>
+          <span class="clip-name">${clips[k].name}</span>
+          <span class="clip-seg"> — Segmento ${clips[k].seg}</span>
+        </div>
+        <button class="remove-clip" onclick="removeClip(${k})">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function removeClip(i) {
+    delete clips[i];
+    const btn = document.querySelector(`#seg-${i} .clip-btn`);
+    if (btn) { btn.classList.remove('clipped'); btn.textContent = '🎬 Clip'; }
+    renderClips();
+  }
+
+  // TOPICS
+  function toggleTopic(i) {
+    document.getElementById('t' + i).classList.toggle('open');
+  }
+
+  // COPY TITLE
+  function copyTitle(el, text) {
+    navigator.clipboard.writeText(text).then(() => showToast('📋 Título copiado al portapapeles'));
+    el.style.background = 'rgba(255,0,0,0.15)';
+    setTimeout(() => el.style.background = '', 600);
+  }
+
+  // TOAST
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+</script>
+</body>
+</html>
