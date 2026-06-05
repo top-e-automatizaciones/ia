@@ -211,10 +211,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#050816;color:#fff;overf
 .cita-meta{font-size:11px;color:#94a3b8;margin-top:3px;display:flex;align-items:center;gap:5px}
 .cita-meta i{font-size:12px}
 .cita-pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;margin-top:7px}
-.cita-actions{display:flex;gap:7px;margin-top:10px}
-.cita-actions a,.cita-actions button{flex:1;font-size:11px;font-weight:600;border-radius:8px;padding:6px 8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;text-decoration:none;border:1px solid transparent;transition:all .15s}
+.cita-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.cita-actions a,.cita-actions button{flex:1;min-width:90px;font-size:11px;font-weight:600;border-radius:8px;padding:6px 8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;text-decoration:none;border:1px solid transparent;transition:all .15s}
 .cita-wa{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff}
 .cita-wa:hover{opacity:.9}
+.cita-gcal{background:rgba(66,133,244,.12);color:#8ab4f8;border-color:rgba(66,133,244,.3)!important}
+.cita-gcal:hover{background:rgba(66,133,244,.2)}
 .cita-cancel{background:rgba(239,68,68,.1);color:#fca5a5;border-color:rgba(239,68,68,.25)!important}
 .cita-cancel:hover{background:rgba(239,68,68,.18)}
 .cal-day-empty{text-align:center;color:#475569;font-size:13px;padding:40px 16px}
@@ -755,6 +757,19 @@ function renderCalendar(){
 
 function selectDay(y,m,d){selectedDay=new Date(y,m,d);renderCalendar()}
 
+function gcalDate(ts){return new Date(ts).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'')}
+function gcalUrl(c){
+  const titulo=(c.servicio?c.servicio+' — ':'')+(c.nombre||c.telefono||'Cita');
+  const detalle=[c.nombre?'Paciente: '+c.nombre:'',c.telefono?'Teléfono: '+c.telefono:'',c.servicio?'Servicio: '+c.servicio:'','— Hergo Fisioterapia'].filter(Boolean).join('\n');
+  const params=new URLSearchParams({
+    action:'TEMPLATE',
+    text:titulo,
+    dates:gcalDate(c.inicio)+'/'+gcalDate(c.fin),
+    details:detalle
+  });
+  return'https://calendar.google.com/calendar/render?'+params.toString();
+}
+
 function renderDayList(){
   const wrap=document.getElementById('cal-day-list');
   if(!wrap)return;
@@ -774,13 +789,14 @@ function renderDayList(){
     const tel=c.telefono?`<div class="cita-meta"><i class="ti ti-phone"></i>${c.telefono}</div>`:'';
     const estadoLabel=c.estado.charAt(0).toUpperCase()+c.estado.slice(1);
     const waBtn=c.telefono?`<a href="https://wa.me/${c.telefono.replace(/\D/g,'')}" target="_blank" class="cita-wa"><i class="ti ti-brand-whatsapp"></i> WhatsApp</a>`:'';
+    const gcalBtn=c.estado!=='cancelada'?`<a href="${gcalUrl(c)}" target="_blank" class="cita-gcal"><i class="ti ti-brand-google"></i> Calendar</a>`:'';
     const cancelBtn=c.estado!=='cancelada'?`<button class="cita-cancel" onclick="cancelCita(${c.id})"><i class="ti ti-x"></i> Cancelar</button>`:'';
     return`<div class="cita-card e-${c.estado}">
       <div class="cita-time"><i class="ti ti-clock"></i>${rango}</div>
       <div class="cita-name">${nm}</div>
       ${serv}${tel}
       <span class="cita-pill e-${c.estado}">${estadoLabel}</span>
-      <div class="cita-actions">${waBtn}${cancelBtn}</div>
+      <div class="cita-actions">${waBtn}${gcalBtn}${cancelBtn}</div>
     </div>`;
   }).join('');
 }
