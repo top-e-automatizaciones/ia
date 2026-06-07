@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Top-e | Diagnóstico de tu negocio</title>
+<style>
+  /* ====== CONFIGURACIÓN DE MARCA (editar aquí) ====== */
+  :root{
+    --bg:        #0a1320;      /* fondo principal (azul oscuro neutro) */
+    --bg-2:      #13203a;      /* fondo secundario / tarjetas */
+    --accent:    #16b6f0;      /* azul de marca (color del logo Top-e) */
+    --accent-2:  #56cdf8;      /* azul claro hover */
+    --text:      #f4f6fb;      /* texto principal */
+    --muted:     #a7b8d0;      /* texto secundario */
+    --line:      #2a3a57;      /* bordes */
+    --ok:        #3ecf8e;      /* éxito */
+    --radius:    14px;
+    --maxw:      720px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:#0a1320;
+    color:var(--text);
+    min-height:100%;
+    overflow-x:hidden;
+  }
+
+  /* Imagen de fondo (foto de la clínica) + overlay para legibilidad */
+  #bg-photo{
+    position:fixed;inset:0;z-index:-2;
+    background-position:center;background-size:cover;background-repeat:no-repeat;
+  }
+  #bg-overlay{
+    position:fixed;inset:0;z-index:-1;
+    background:
+      radial-gradient(900px 600px at 75% 0%, rgba(22,182,240,.20), transparent 60%),
+      linear-gradient(180deg, rgba(8,15,26,.72), rgba(8,15,26,.86));
+  }
+
+  /* Barra de progreso */
+  #progress-wrap{position:fixed;top:0;left:0;right:0;height:5px;background:rgba(255,255,255,.06);z-index:50}
+  #progress{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .4s ease}
+
+  /* Cabecera con logo */
+  header{position:fixed;top:16px;left:20px;z-index:40;display:flex;align-items:center;gap:10px}
+  header .logo-img{height:46px;width:46px;border-radius:50%;object-fit:cover;display:none;box-shadow:0 4px 14px rgba(22,182,240,.4)}
+  header .logo-text{font-weight:800;font-size:22px;letter-spacing:.5px}
+  header .logo-text span{color:var(--accent)}
+
+  /* Contenedor de slides */
+  main{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:96px 22px 120px}
+  .slide{
+    display:none;width:100%;max-width:var(--maxw);animation:fade .5s ease;
+    background:rgba(10,19,32,.72);
+    -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+    border:1px solid rgba(86,205,248,.18);
+    border-radius:20px;
+    padding:34px 36px;
+    box-shadow:0 24px 60px rgba(0,0,0,.45);
+  }
+  .slide.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+  .q-index{color:var(--accent-2);font-weight:700;font-size:14px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+  h1{font-size:clamp(24px,4vw,34px);line-height:1.2;margin-bottom:8px}
+  h1 .req{color:var(--accent-2)}
+  .subtitle{color:var(--muted);font-size:15px;margin-bottom:6px}
+  .helper{color:var(--muted);font-size:13px;margin:14px 0 4px;font-style:italic}
+
+  /* Opciones tipo Typeform */
+  .options{display:flex;flex-direction:column;gap:10px;margin-top:22px}
+  .opt{
+    display:flex;align-items:center;gap:12px;
+    background:var(--bg-2);border:1.5px solid var(--line);
+    border-radius:10px;padding:14px 16px;cursor:pointer;
+    transition:all .15s ease;user-select:none;text-align:left;width:100%;color:var(--text);font-size:16px;
+  }
+  .opt:hover{border-color:var(--accent);background:#1b2a47}
+  .opt.selected{border-color:var(--accent);background:rgba(47,111,237,.18);box-shadow:0 0 0 1px var(--accent) inset}
+  .opt .key{
+    flex:0 0 auto;width:26px;height:26px;border-radius:6px;border:1.5px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--muted);
+    transition:all .15s ease;
+  }
+  .opt:hover .key,.opt.selected .key{border-color:var(--accent);color:var(--text);background:var(--accent)}
+  .opt .label{flex:1}
+  .opt .note{color:var(--muted);font-size:13px;font-style:italic;margin-left:4px}
+  .opt .check{opacity:0;color:var(--accent-2);font-weight:800;transition:opacity .15s}
+  .opt.selected .check{opacity:1}
+
+  /* Inputs */
+  .field{margin-top:18px}
+  .field label{display:block;font-size:15px;margin-bottom:7px;color:var(--text)}
+  .field label .req{color:var(--accent-2)}
+  .field input{
+    width:100%;background:var(--bg-2);border:1.5px solid var(--line);border-radius:10px;
+    padding:13px 14px;color:var(--text);font-size:16px;outline:none;transition:border-color .15s;
+  }
+  .field input:focus{border-color:var(--accent)}
+  .field .err{color:#ff7d7d;font-size:13px;margin-top:5px;display:none}
+  .field.invalid input{border-color:#ff7d7d}
+  .field.invalid .err{display:block}
+
+  /* Botones de acción */
+  .actions{margin-top:26px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .btn{
+    background:var(--accent);color:#fff;border:none;border-radius:10px;
+    padding:13px 26px;font-size:16px;font-weight:700;cursor:pointer;transition:all .15s;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .btn:hover{background:var(--accent-2)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--muted)}
+  .btn.ghost:hover{border-color:var(--accent);color:var(--text)}
+  .key-hint{color:var(--muted);font-size:13px}
+  .key-hint kbd{background:var(--bg-2);border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-size:12px}
+
+  /* Calendario */
+  .cal-wrap{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}
+  @media(max-width:560px){.cal-wrap{grid-template-columns:1fr}}
+  .cal-col h3{font-size:14px;color:var(--muted);margin-bottom:10px;font-weight:600}
+  .chips{display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto;padding-right:4px}
+  .chip{
+    background:var(--bg-2);border:1.5px solid var(--line);border-radius:9px;padding:11px 14px;
+    cursor:pointer;font-size:15px;transition:all .15s;color:var(--text);text-align:left;
+  }
+  .chip:hover{border-color:var(--accent)}
+  .chip.selected{border-color:var(--accent);background:rgba(47,111,237,.18)}
+  .chips::-webkit-scrollbar{width:6px}
+  .chips::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+  /* Bienvenida / final */
+  .center{text-align:center}
+  .center h1{margin-bottom:14px}
+  .center p{color:var(--muted);font-size:17px;margin-bottom:8px;max-width:560px;margin-left:auto;margin-right:auto}
+  .big-emoji{font-size:54px;margin-bottom:10px}
+  .spinner{width:42px;height:42px;border:4px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:20px auto}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  footer{position:fixed;bottom:14px;right:20px;color:var(--muted);font-size:12px;z-index:40}
+
+  /* ====== RESPONSIVE / MÓVIL ====== */
+  @media(max-width:600px){
+    main{padding:80px 12px 90px}
+    .slide{padding:22px 18px;border-radius:16px}
+    header{top:12px;left:14px}
+    header .logo-img{height:40px;width:40px}
+    header .logo-text{font-size:20px}
+    h1{font-size:22px}
+    .opt{padding:13px 13px;font-size:15px}
+    .opt .key{width:24px;height:24px;font-size:12px}
+    .btn{padding:13px 22px;font-size:16px;flex:1;justify-content:center}
+    .actions{gap:10px}
+    .key-hint{display:none}            /* el atajo de teclado no aplica en móvil */
+    .field input{font-size:16px}        /* evita el zoom automático de iOS */
+    .chips{max-height:230px}
+    footer{display:none}
+  }
+  /* Botones más cómodos al tacto en cualquier pantalla táctil */
+  @media(hover:none){
+    .opt{padding:15px 16px}
+  }
+</style>
+</head>
+<body>
+  <div id="bg-photo"></div>
+  <div id="bg-overlay"></div>
+  <div id="progress-wrap"><div id="progress"></div></div>
+  <header>
+    <img src="" alt="Top-e" class="logo-img" id="logoImg" />
+    <div class="logo-text">Top<span>-e</span></div>
+  </header>
+
+  <main id="app"></main>
+
+  <footer>Top-e · Diagnóstico</footer>
+
+<script>
+/* =======================================================================
+   CONFIGURACIÓN  (editar)
+   ======================================================================= */
+const CONFIG = {
+  // URL del webhook de n8n (producción).
+  WEBHOOK_URL: "https://fenixautomatizacion.app.n8n.cloud/webhook/top-e-form",
+  // Logo: súbelo al bucket "top-e" de Supabase con el nombre logo.png (déjalo vacío "" para mostrar solo el texto "Top-e").
+  LOGO_URL: "https://uvbrhmhxtxwvdjryuevf.supabase.co/storage/v1/object/public/top-e/logo.png",
+  // Imagen de fondo: súbela al bucket "top-e" como fondo.jpg (déjala vacía "" para usar solo el degradado oscuro).
+  BG_URL: "https://uvbrhmhxtxwvdjryuevf.supabase.co/storage/v1/object/public/top-e/fondo.jpg"
+};
+
+/* =======================================================================
+   DATOS DEL FORMULARIO
+   ======================================================================= */
+const SERVICIOS = {
+  inyectables: ["Rinomodelación","Aumento de labios","Toxina botulínica","Exosomas","PRDN Salmón","PRP Facial","Mesoterapia","Regeneración capilar","Marcaje mandibular","Enzimas lipolíticas","Rejuvenecimiento facial","Otro"],
+  aparatologia: ["Hydrafacial","HIFU","Microneedling","Láser Diodo","Láser IPL","Láser CO2","Láser YAG","RF Fraccionada","Cavitación","Dermapen","EMS","Endolift","Terapia LED","PRP Capilar","Otro"],
+  estetica: ["Microblading","Laminado de cejas","Lash Lifting","Extensión de pestañas","Micropigmentación (labios)","Manicure","Pedicure","Colorimetría","Otro"],
+  fisioterapia: ["Rehabilitación física","Rehabilitación postoperatoria","Rehabilitación deportiva","Rehabilitación neurológica","Rehabilitación traumatológica","Reeducación postural","Corrección de postura","Terapia para dolor crónico","Terapia geriátrica","Otro"]
+};
+
+// Estado global de respuestas
+const data = {
+  categoria: null,
+  servicios: [],
+  fase_clinica: null,
+  cita: { fecha: null, hora: null },
+  nombre: "", correo: "", whatsapp: "", instagram: "",
+  inversion: null, reunion_laptop: null
+};
+
+const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+let current = 0;
+
+/* =======================================================================
+   DEFINICIÓN DE PASOS
+   ======================================================================= */
+function buildSteps(){
+  return [
+    { type:"welcome" },
+    {
+      type:"single", key:"categoria",
+      title:"TU NEGOCIO OFRECE PRINCIPALMENTE:", required:true,
+      options:[
+        {value:"Inyectables", id:"inyectables"},
+        {value:"Aparatología", id:"aparatologia"},
+        {value:"Estética", id:"estetica"},
+        {value:"Rehabilitación y Fisioterapia", id:"fisioterapia"}
+      ]
+    },
+    {
+      type:"multi", key:"servicios",
+      title:"¿CUÁLES SON TUS 3 SERVICIOS MÁS VENDIDOS?", required:true,
+      subtitle:"(Si tus servicios no están en esta lista, NO te podemos ayudar).",
+      helper:"Elige entre 1 y 3 opciones",
+      min:1, max:3,
+      dynamic:true // las opciones se calculan según data.categoria
+    },
+    {
+      type:"single", key:"fase_clinica",
+      title:"¿EN QUÉ FASE SE ENCUENTRA TU CLÍNICA?", required:true,
+      subtitle:"Esto nos ayudará a identificar TU estrategia correcta.",
+      options:[
+        {value:"Falta de prospectos", note:"(Anuncios sin resultados)"},
+        {value:"Baja tasa de agendamiento", note:"(Muchos leads, poco cierre)"},
+        {value:"Poca asistencia", note:"(Suficientes citas, pocas asistencias)"},
+        {value:"Baja facturación pero buen flujo de citas", note:"(Tickets de venta bajos)"},
+        {value:"Inconsistencia en resultados", note:"(Picos y bajadas todo el tiempo)"}
+      ]
+    },
+    { type:"calendar", title:"AGENDA TU ASESORÍA", subtitle:"Selecciona la fecha y hora que mejor te funcione." },
+    { type:"contact", title:"INTRODUCE TUS DATOS", subtitle:"Para confirmar tu asesoría personalizada." },
+    { type:"submit" }
+  ];
+}
+let STEPS = buildSteps();
+
+/* =======================================================================
+   RENDER
+   ======================================================================= */
+const app = document.getElementById("app");
+
+function setProgress(){
+  const pct = Math.round((current/(STEPS.length-1))*100);
+  document.getElementById("progress").style.width = pct + "%";
+}
+
+function render(){
+  STEPS = buildSteps(); // re-evalúa por si cambió la categoría
+  const step = STEPS[current];
+  app.innerHTML = "";
+  const slide = document.createElement("section");
+  slide.className = "slide active";
+
+  if(step.type === "welcome")      renderWelcome(slide, step);
+  else if(step.type === "single")  renderSingle(slide, step);
+  else if(step.type === "multi")   renderMulti(slide, step);
+  else if(step.type === "calendar")renderCalendar(slide, step);
+  else if(step.type === "contact") renderContact(slide, step);
+  else if(step.type === "submit")  renderSubmit(slide, step);
+
+  app.appendChild(slide);
+  setProgress();
+}
+
+function navButtons(slide, {onNext, nextLabel="Aceptar", showBack=true, disabled=false}={}){
+  const actions = document.createElement("div");
+  actions.className = "actions";
+  if(showBack && current>0){
+    const back = document.createElement("button");
+    back.className = "btn ghost"; back.textContent = "← Atrás";
+    back.onclick = ()=>{ current--; render(); };
+    actions.appendChild(back);
+  }
+  if(onNext){
+    const next = document.createElement("button");
+    next.className = "btn"; next.textContent = nextLabel; next.disabled = disabled;
+    next.onclick = onNext;
+    actions.appendChild(next);
+    const hint = document.createElement("span");
+    hint.className = "key-hint";
+    hint.innerHTML = 'pulsa <kbd>Enter ↵</kbd>';
+    actions.appendChild(hint);
+    slide._next = next; // referencia para Enter
+  }
+  slide.appendChild(actions);
+}
+
+function qIndex(slide, step){
+  const realSteps = STEPS.filter(s=>["single","multi","calendar","contact"].includes(s.type));
+  const n = realSteps.indexOf(step)+1;
+  if(n>0){
+    const idx = document.createElement("div");
+    idx.className = "q-index";
+    idx.innerHTML = `▸ Pregunta ${n} de ${realSteps.length}`;
+    slide.appendChild(idx);
+  }
+}
+
+/* ---- Welcome ---- */
+function renderWelcome(slide, step){
+  slide.className += " center";
+  slide.innerHTML = `
+    <div class="big-emoji">🚀</div>
+    <h1>Descubre la estrategia correcta para tu negocio</h1>
+    <p>Responde unas preguntas rápidas y agenda tu asesoría personalizada con <b>Top-e</b>.</p>
+    <p style="font-size:14px">Toma menos de 2 minutos.</p>`;
+  navButtons(slide, { onNext:()=>{ current++; render(); }, nextLabel:"Comenzar →", showBack:false });
+}
+
+/* ---- Single choice ---- */
+function renderSingle(slide, step){
+  qIndex(slide, step);
+  const h = document.createElement("h1");
+  h.innerHTML = step.title + (step.required?' <span class="req">*</span>':'');
+  slide.appendChild(h);
+  if(step.subtitle){ const s=document.createElement("p"); s.className="subtitle"; s.textContent=step.subtitle; slide.appendChild(s); }
+
+  const wrap = document.createElement("div"); wrap.className="options";
+  step.options.forEach((opt,i)=>{
+    const el = document.createElement("button");
+    el.className = "opt" + (data[step.key]===opt.value ? " selected":"");
+    el.innerHTML = `<span class="key">${LETTERS[i]}</span>
+      <span class="label">${opt.value}${opt.note?` <span class="note">${opt.note}</span>`:''}</span>
+      <span class="check">✓</span>`;
+    el.onclick = ()=>{
+      data[step.key]=opt.value;
+      if(step.optId!==undefined) data[step.optId]=opt.id;
+      if(step.key==="categoria"){ data.categoriaId=opt.id; data.servicios=[]; }
+      // auto-avance
+      setTimeout(()=>{ current++; render(); }, 220);
+      [...wrap.children].forEach(c=>c.classList.remove("selected"));
+      el.classList.add("selected");
+    };
+    wrap.appendChild(el);
+  });
+  slide.appendChild(wrap);
+  navButtons(slide, {
+    onNext:()=>{ if(data[step.key]){ current++; render(); } },
+    disabled:!data[step.key]
+  });
+}
+
+/* ---- Multi choice (servicios) ---- */
+function renderMulti(slide, step){
+  qIndex(slide, step);
+  const h=document.createElement("h1");
+  h.innerHTML = step.title + (step.required?' <span class="req">*</span>':'');
+  slide.appendChild(h);
+  if(step.subtitle){ const s=document.createElement("p"); s.className="subtitle"; s.textContent=step.subtitle; slide.appendChild(s); }
+  const help=document.createElement("p"); help.className="helper";
+  slide.appendChild(help);
+
+  const list = step.dynamic ? (SERVICIOS[data.categoriaId]||[]) : step.options.map(o=>o.value);
+  const wrap=document.createElement("div"); wrap.className="options";
+
+  function refresh(){
+    help.textContent = `${step.helper} · seleccionados: ${data.servicios.length}/${step.max}`;
+    if(slide._next) slide._next.disabled = data.servicios.length < step.min;
+  }
+
+  list.forEach((val,i)=>{
+    const el=document.createElement("button");
+    el.className="opt"+(data.servicios.includes(val)?" selected":"");
+    el.innerHTML=`<span class="key">${LETTERS[i]}</span><span class="label">${val}</span><span class="check">✓</span>`;
+    el.onclick=()=>{
+      const idx=data.servicios.indexOf(val);
+      if(idx>=0){ data.servicios.splice(idx,1); el.classList.remove("selected"); }
+      else{
+        if(data.servicios.length>=step.max){ return; }
+        data.servicios.push(val); el.classList.add("selected");
+      }
+      refresh();
+    };
+    wrap.appendChild(el);
+  });
+  slide.appendChild(wrap);
+  navButtons(slide, {
+    onNext:()=>{ if(data.servicios.length>=step.min){ current++; render(); } },
+    disabled: data.servicios.length < step.min
+  });
+  refresh();
+}
+
+/* ---- Calendar ---- */
+function generateDates(count){
+  const out=[]; const d=new Date(); d.setHours(0,0,0,0);
+  const days=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+  const months=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+  let added=0;
+  while(added<count){
+    d.setDate(d.getDate()+1);
+    if(d.getDay()===0) continue; // saltar domingos
+    out.push({
+      iso:d.toISOString().slice(0,10),
+      label:`${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`
+    });
+    added++;
+  }
+  return out;
+}
+const TIME_SLOTS=["10:00 a.m.","10:30 a.m.","11:00 a.m.","11:30 a.m.","12:00 p.m.","12:30 p.m.","1:00 p.m.","1:30 p.m.","2:00 p.m.","2:30 p.m.","3:00 p.m.","4:00 p.m."];
+
+function renderCalendar(slide, step){
+  qIndex(slide, step);
+  const h=document.createElement("h1"); h.innerHTML=step.title+' <span class="req">*</span>'; slide.appendChild(h);
+  const s=document.createElement("p"); s.className="subtitle"; s.textContent=step.subtitle; slide.appendChild(s);
+
+  const grid=document.createElement("div"); grid.className="cal-wrap";
+  const colD=document.createElement("div"); colD.className="cal-col";
+  colD.innerHTML='<h3>📅 Fecha</h3>'; const chipsD=document.createElement("div"); chipsD.className="chips"; colD.appendChild(chipsD);
+  const colT=document.createElement("div"); colT.className="cal-col";
+  colT.innerHTML='<h3>🕐 Hora</h3>'; const chipsT=document.createElement("div"); chipsT.className="chips"; colT.appendChild(chipsT);
+
+  generateDates(20).forEach(dt=>{
+    const c=document.createElement("button"); c.className="chip"+(data.cita.fecha===dt.label?" selected":"");
+    c.textContent=dt.label;
+    c.onclick=()=>{ data.cita.fecha=dt.label; data.cita.fechaIso=dt.iso; [...chipsD.children].forEach(x=>x.classList.remove("selected")); c.classList.add("selected"); checkReady(); };
+    chipsD.appendChild(c);
+  });
+  TIME_SLOTS.forEach(t=>{
+    const c=document.createElement("button"); c.className="chip"+(data.cita.hora===t?" selected":"");
+    c.textContent=t;
+    c.onclick=()=>{ data.cita.hora=t; [...chipsT.children].forEach(x=>x.classList.remove("selected")); c.classList.add("selected"); checkReady(); };
+    chipsT.appendChild(c);
+  });
+
+  grid.appendChild(colD); grid.appendChild(colT); slide.appendChild(grid);
+  navButtons(slide, {
+    onNext:()=>{ if(data.cita.fecha && data.cita.hora){ current++; render(); } },
+    disabled:!(data.cita.fecha && data.cita.hora)
+  });
+  function checkReady(){ if(slide._next) slide._next.disabled=!(data.cita.fecha && data.cita.hora); }
+}
+
+/* ---- Contact ---- */
+const INVERSION=[
+  {value:"Menos de $3,000 MXN", note:"(No te podemos ayudar)"},
+  {value:"+$5,000 MXN"},
+  {value:"+$7,000 MXN"},
+  {value:"+$10,000 MXN"},
+  {value:"+$15,000 MXN", note:"(Ideal para cabinas llenas)"},
+  {value:"+$20,000 MXN"}
+];
+const REUNION=[
+  {value:"Sí (Estoy comprometido/a)"},
+  {value:"No (No me interesa la asesoría)"}
+];
+
+function renderContact(slide, step){
+  qIndex(slide, step);
+  const h=document.createElement("h1"); h.innerHTML=step.title+' <span class="req">*</span>'; slide.appendChild(h);
+  const s=document.createElement("p"); s.className="subtitle"; s.textContent=step.subtitle; slide.appendChild(s);
+
+  const fields=[
+    {key:"nombre", label:"Nombre completo", type:"text"},
+    {key:"correo", label:"Correo electrónico", type:"email"},
+    {key:"whatsapp", label:"¿Cuál es tu número de WhatsApp?", type:"tel"},
+    {key:"instagram", label:"¿Nombre exacto de tu negocio en Instagram?", type:"text"}
+  ];
+  fields.forEach(f=>{
+    const fd=document.createElement("div"); fd.className="field"; fd.dataset.key=f.key;
+    fd.innerHTML=`<label>${f.label} <span class="req">*</span></label>
+      <input type="${f.type}" value="${data[f.key]||''}" placeholder="Escribe aquí..." />
+      <div class="err">Este campo es obligatorio.</div>`;
+    const inp=fd.querySelector("input");
+    inp.oninput=()=>{ data[f.key]=inp.value.trim(); fd.classList.remove("invalid"); };
+    slide.appendChild(fd);
+  });
+
+  // Capacidad de inversión
+  const invWrap=document.createElement("div"); invWrap.className="field"; invWrap.dataset.key="inversion";
+  invWrap.innerHTML=`<label>¿Cuál es tu capacidad de inversión en publicidad pagada al mes? <span class="req">*</span></label><div class="err">Selecciona una opción.</div>`;
+  const invOpts=document.createElement("div"); invOpts.className="options";
+  INVERSION.forEach((o,i)=>{
+    const el=document.createElement("button"); el.className="opt"+(data.inversion===o.value?" selected":"");
+    el.innerHTML=`<span class="key">${LETTERS[i]}</span><span class="label">${o.value}${o.note?` <span class="note">${o.note}</span>`:''}</span><span class="check">✓</span>`;
+    el.onclick=()=>{ data.inversion=o.value; [...invOpts.children].forEach(c=>c.classList.remove("selected")); el.classList.add("selected"); invWrap.classList.remove("invalid"); };
+    invOpts.appendChild(el);
+  });
+  invWrap.appendChild(invOpts); slide.appendChild(invWrap);
+
+  // Reunión laptop
+  const reuWrap=document.createElement("div"); reuWrap.className="field"; reuWrap.dataset.key="reunion_laptop";
+  reuWrap.innerHTML=`<label>¿Aceptas reunirte desde una laptop/PC para aprovechar al máximo la asesoría? <span class="req">*</span></label><div class="err">Selecciona una opción.</div>`;
+  const reuOpts=document.createElement("div"); reuOpts.className="options";
+  REUNION.forEach((o,i)=>{
+    const el=document.createElement("button"); el.className="opt"+(data.reunion_laptop===o.value?" selected":"");
+    el.innerHTML=`<span class="key">${LETTERS[i]}</span><span class="label">${o.value}</span><span class="check">✓</span>`;
+    el.onclick=()=>{ data.reunion_laptop=o.value; [...reuOpts.children].forEach(c=>c.classList.remove("selected")); el.classList.add("selected"); reuWrap.classList.remove("invalid"); };
+    reuOpts.appendChild(el);
+  });
+  reuWrap.appendChild(reuOpts); slide.appendChild(reuWrap);
+
+  navButtons(slide, { onNext:()=>{ if(validateContact(slide)){ current++; render(); submitForm(); } }, nextLabel:"Enviar ✓" });
+}
+
+function validateContact(slide){
+  let ok=true;
+  const emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  ["nombre","correo","whatsapp","instagram"].forEach(k=>{
+    const fd=slide.querySelector(`.field[data-key="${k}"]`);
+    let bad = !data[k];
+    if(k==="correo" && data[k] && !emailRe.test(data[k])){ bad=true; fd.querySelector(".err").textContent="Correo no válido."; }
+    if(bad){ fd.classList.add("invalid"); ok=false; }
+  });
+  ["inversion","reunion_laptop"].forEach(k=>{
+    const fd=slide.querySelector(`.field[data-key="${k}"]`);
+    if(!data[k]){ fd.classList.add("invalid"); ok=false; }
+  });
+  return ok;
+}
+
+/* ---- Submit / Thank you ---- */
+let submitState="idle";
+function renderSubmit(slide, step){
+  slide.className+=" center";
+  if(submitState==="sending"){
+    slide.innerHTML=`<div class="spinner"></div><h1>Enviando tu información...</h1>`;
+  } else if(submitState==="error"){
+    slide.innerHTML=`<div class="big-emoji">⚠️</div><h1>Hubo un problema al enviar</h1>
+      <p>Revisa tu conexión e inténtalo de nuevo.</p>`;
+    navButtons(slide,{onNext:()=>{ submitForm(); }, nextLabel:"Reintentar", showBack:false});
+  } else {
+    slide.innerHTML=`<div class="big-emoji">🎉</div><h1>¡Listo, ${data.nombre.split(' ')[0]||''}!</h1>
+      <p>Hemos recibido tu información y tu solicitud de cita para el <b>${data.cita.fecha}</b> a las <b>${data.cita.hora}</b>.</p>
+      <p>Pronto te contactaremos por WhatsApp para confirmar. 💙</p>`;
+  }
+  setProgress();
+}
+
+function submitForm(){
+  submitState="sending"; render();
+  const payload={
+    categoria:data.categoria,
+    servicios:data.servicios,
+    fase_clinica:data.fase_clinica,
+    cita:{ fecha:data.cita.fecha, fecha_iso:data.cita.fechaIso, hora:data.cita.hora },
+    nombre:data.nombre, correo:data.correo, whatsapp:data.whatsapp, instagram:data.instagram,
+    inversion:data.inversion, reunion_laptop:data.reunion_laptop,
+    enviado_en:new Date().toISOString(),
+    origen: location.href
+  };
+  fetch(CONFIG.WEBHOOK_URL,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(payload)
+  }).then(r=>{
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    submitState="done"; render();
+  }).catch(err=>{
+    console.error("Error al enviar:",err);
+    submitState="error"; render();
+  });
+}
+
+/* =======================================================================
+   TECLADO  (Enter avanza, letras/números seleccionan)
+   ======================================================================= */
+document.addEventListener("keydown",(e)=>{
+  const slide=app.querySelector(".slide");
+  if(!slide) return;
+  if(e.key==="Enter"){
+    if(slide._next && !slide._next.disabled){ e.preventDefault(); slide._next.click(); }
+    return;
+  }
+  // selección rápida por letra en pantallas de opciones (no en inputs)
+  if(document.activeElement && document.activeElement.tagName==="INPUT") return;
+  const opts=slide.querySelectorAll(".opt");
+  if(opts.length){
+    const k=e.key.toUpperCase();
+    const i=LETTERS.indexOf(k);
+    if(i>=0 && i<opts.length){ opts[i].click(); }
+  }
+});
+
+/* =======================================================================
+   INIT
+   ======================================================================= */
+// Fondo (foto de la clínica)
+if(CONFIG.BG_URL){
+  document.getElementById("bg-photo").style.backgroundImage = `url('${CONFIG.BG_URL}')`;
+}
+// Logo: si carga, se muestra y se oculta el texto; si falla, se queda el texto "Top-e"
+if(CONFIG.LOGO_URL){
+  const img=document.getElementById("logoImg");
+  const txt=document.querySelector(".logo-text");
+  img.onload=()=>{ img.style.display="block"; txt.style.display="none"; };
+  img.onerror=()=>{ img.style.display="none"; txt.style.display="block"; };
+  img.src=CONFIG.LOGO_URL;
+}
+render();
+</script>
+</body>
+</html>
