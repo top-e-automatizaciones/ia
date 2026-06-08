@@ -147,6 +147,28 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#050816;color:#fff;overf
 .empty-state small{font-size:12px;color:#334155}
 
 .spinner{text-align:center;padding:24px;color:#475569;font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px}
+
+/* Botón "volver" (solo visible en móvil) */
+.chat-back{display:none;background:none;border:none;color:#94a3b8;font-size:23px;cursor:pointer;padding:0 6px 0 0;align-items:center;flex-shrink:0}
+.chat-back:hover{color:#22c55e}
+
+/* ════════════════ RESPONSIVE / MÓVIL ════════════════ */
+@media (max-width:820px){
+  #app-screen{height:100vh;height:100dvh}
+
+  /* Topbar compacta */
+  .topbar{padding:9px 12px;gap:8px}
+  .topbar-name{font-size:12.5px}
+  .user-pill{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* La lista ocupa toda la pantalla; el chat se oculta hasta seleccionar */
+  .sidebar{width:100%;min-width:0;border-right:none}
+  .chat-area{display:none}
+  body.chat-open .sidebar{display:none}
+  body.chat-open .chat-area{display:flex}
+  .chat-back{display:inline-flex}
+  .bubble{max-width:82%}
+}
 </style>
 </head>
 <body>
@@ -278,6 +300,7 @@ async function doLogin(){
 }
 
 function doLogout(){
+  document.body.classList.remove('chat-open');
   if(realtimeChannel)supaClient.removeChannel(realtimeChannel);
   token=null;allSessions=[];clientsMap={};selected=null;supaClient=null;realtimeChannel=null;
   document.getElementById('login-screen').style.display='flex';
@@ -463,8 +486,11 @@ function appendBubble(m){
   if(node){container.appendChild(node);container.scrollTop=container.scrollHeight;}
 }
 
+function closeChat(){document.body.classList.remove('chat-open')}
+
 function selectConv(sid){
   selected=sid;
+  document.body.classList.add('chat-open');
   const q=document.getElementById('search').value;
   filterConvs(q);
   const s=allSessions.find(x=>x.session_id===sid);
@@ -488,6 +514,7 @@ function selectConv(sid){
 
   document.getElementById('chat-area').innerHTML=`
     <div class="chat-header">
+      <button class="chat-back" onclick="closeChat()" title="Volver"><i class="ti ti-arrow-left"></i></button>
       <div class="avatar" style="background:${color}22;color:${color};border:2px solid ${color}55;width:44px;height:44px;font-size:15px;border-radius:50%;flex-shrink:0">${ini}</div>
       <div class="chat-header-info">
         <h3>${displayName} ${stagePill}</h3>
